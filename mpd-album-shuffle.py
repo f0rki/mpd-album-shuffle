@@ -86,7 +86,10 @@ class AlbumList(object):
         self.albums = set()
         for song in self.client.playlistinfo():
             if "album" in song:
-                self.albums.add(song["album"])
+                album = song["album"]
+                if isinstance(album, list):
+                    album = album[0]
+                self.albums.add(album)
             else:
                 #TODO: every song without album info should be considered to be
                 # in a separate album
