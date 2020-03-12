@@ -1,28 +1,38 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2013 Michael Rodler contact (at) f0rki (dot) at
+# This is free and unencumbered software released into the public domain.
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License.
+# Anyone is free to copy, modify, publish, use, compile, sell, or
+# distribute this software, either in source code form or as a compiled
+# binary, for any purpose, commercial or non-commercial, and by any
+# means.
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# In jurisdictions that recognize copyright laws, the author or authors
+# of this software dedicate any and all copyright interest in the
+# software to the public domain. We make this dedication for the benefit
+# of the public at large and to the detriment of our heirs and
+# successors. We intend this dedication to be an overt act of
+# relinquishment in perpetuity of all present and future rights to this
+# software under copyright law.
 #
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+# IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+# OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+#
+# For more information, please refer to <http://unlicense.org/>
 #
 
-
-import sys
-import os
 import argparse
-import random
 import logging
-import mpd
+import os
+import random
+import sys
 
+import mpd
 
 MPD_CONNECTION_TIMEOUT = 10
 
@@ -36,7 +46,6 @@ class mpd_connect(object):
           print(client.status())
 
     """
-
     def __init__(self, host, port, password=None):
         self.host = host
         self.port = port
@@ -48,8 +57,8 @@ class mpd_connect(object):
         try:
             self.client.connect(self.host, self.port)
         except ConnectionRefusedError as e:
-            logging.error("Couldn't connect to MPD at {}:{} ({})"
-                    .format(self.host, self.port, e))
+            logging.error("Couldn't connect to MPD at {}:{} ({})".format(
+                self.host, self.port, e))
             return None
         if self.password is not None:
             try:
@@ -57,11 +66,11 @@ class mpd_connect(object):
             except mpd.CommandError as e:
                 logging.error("MPD didn't accept the password")
                 return None
-        logging.debug("connected to MPD version: {}"
-                .format(self.client.mpd_version))
+        logging.debug("connected to MPD version: {}".format(
+            self.client.mpd_version))
         return self.client
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, _type, value, traceback):
         if self.client is not None:
             self.client.close()
             self.client.disconnect()
@@ -72,7 +81,6 @@ class AlbumList(object):
     Class which wraps functionality to maintain a list of all albums in the
     current playlist
     """
-
     def __init__(self, client):
         self.client = client
         self.albums = None
@@ -93,8 +101,8 @@ class AlbumList(object):
             else:
                 #TODO: every song without album info should be considered to be
                 # in a separate album
-                logging.debug("no album information, ignoring entry: {}"
-                        .format(song))
+                logging.debug(
+                    "no album information, ignoring entry: {}".format(song))
 
     def find_album_boundaries(self, albumname):
         """returns a tuple of the positions of the first and last song of the
@@ -103,8 +111,8 @@ class AlbumList(object):
         entries = self.client.playlistfind("album", albumname)
         if entries:
             return int(entries[0]["pos"]), int(entries[-1]["pos"])
-        else:
-            return None, None  # TODO: or raise Exception?
+        
+        return None, None  # TODO: or raise Exception?
 
     def get_current_album(self):
         return self.client.currentsong()["album"]
@@ -116,14 +124,14 @@ class AlbumList(object):
         if self.albums:
             if len(self.albums) == 1:
                 return current
-            else:
+
+            new = random.choice(list(self.albums))
+            while current == new:
                 new = random.choice(list(self.albums))
-                while current == new:
-                    new = random.choice(list(self.albums))
-                return new
-        else:
-            logging.warn("No albums found")
-            return None
+            return new
+        
+        logging.warn("No albums found")
+        return None
 
     def play_random(self):
         """Play first song of a random album in the current playlist."""
@@ -182,18 +190,27 @@ def extract_mpd_credentials(string, defaults=None):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=
-            "Randomly play or sort the albums in the current mpd playlist")
-    parser.add_argument("-v", "--verbose", action="store_true",
-            help="increase verbosity of output")
-    parser.add_argument("-vv", dest="debug", action="store_true",
-            help="turn on debug output (really really verbose)")
-    parser.add_argument("-p", "--port", nargs=1, type=int,
-            help="the port to connect to")
-    parser.add_argument("-H", "--host", nargs=1,
-            help="the hostname to connect to")
-    parser.add_argument("-P", "--password", nargs=1,
-            help="the password")
+    parser = argparse.ArgumentParser(
+        description=
+        "Randomly play or sort the albums in the current mpd playlist")
+    parser.add_argument("-v",
+                        "--verbose",
+                        action="store_true",
+                        help="increase verbosity of output")
+    parser.add_argument("-vv",
+                        dest="debug",
+                        action="store_true",
+                        help="turn on debug output (really really verbose)")
+    parser.add_argument("-p",
+                        "--port",
+                        nargs=1,
+                        type=int,
+                        help="the port to connect to")
+    parser.add_argument("-H",
+                        "--host",
+                        nargs=1,
+                        help="the hostname to connect to")
+    parser.add_argument("-P", "--password", nargs=1, help="the password")
     parser.add_argument("command", choices=["play", "sort"])
     args = parser.parse_args(sys.argv[1:])
 
@@ -219,8 +236,8 @@ def main():
         pw = args.password[0]
     if args.host:
         host = args.host[0]
-    logging.debug("connecting to host: {} port: {} pw: {}"
-            .format(host, port, pw))
+    logging.debug("connecting to host: {} port: {} pw: {}".format(
+        host, port, pw))
 
     try:
         with mpd_connect(host, port, pw) as client:
@@ -238,6 +255,7 @@ def main():
     except mpd.ConnectionError as e:
         logging.error("Couldn't connect to MPD ({})".format(e))
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
